@@ -4,7 +4,7 @@ services:
     image: mariadb:latest
     env_file: .env
     ports:
-      - "6033:3306"
+      - "${MYSQL_PORT}:3306"
     volumes:
       - dbdata:/var/lib/mysql
 

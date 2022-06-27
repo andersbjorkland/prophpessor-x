@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Database;
 
 use App\Attribute\EntityAttribute;
+use App\Attribute\NullableAttribute;
 use App\Attribute\PrimaryKey;
 use Cli\CliColor;
 use React\MySQL\ConnectionInterface;
@@ -109,7 +110,10 @@ class DBManager
             /** @var EntityAttribute $attribute */
             $attribute = $attribute['instance'];
 
-            $nullQuery = $attribute->isNullable() ? ' NULL' : ' NOT NULL';
+            $nullQuery = '';
+            if ($attribute instanceof NullableAttribute) {
+                $nullQuery = $attribute->isNullable() ? ' NULL' : ' NOT NULL';
+            }
 
             $query .= '`' . $attributeName . '` ' . $attribute->getType() . $nullQuery . ', ';
 

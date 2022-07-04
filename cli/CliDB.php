@@ -20,12 +20,15 @@ class CliDB implements CliCommand
                     foreach ($result as $message) {
                         echo $message . "\n";
                     }
+                })->done(function () {
+                    echo "Done processing base tables.\n";
                 });
 
             $manager->createRelationTables($entities)
-                ->then(function () {
-                    echo "Relational table created.\n";
+                ->done(function () {
+                    exit("Done processing relational tables.\n");
                 });
+
         } catch (Exception $e) {
             echo CliColor::colorize($e->getMessage(), CliColor::RED);
             exit(1);

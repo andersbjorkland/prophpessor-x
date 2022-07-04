@@ -8,7 +8,7 @@ use App\Attribute\PrimaryKey;
 abstract class AbstractEntity
 {
     #[PrimaryKey]
-    protected string $id;
+    protected int $id;
 
     #[DateTime]
     protected \DateTime $createdAt;

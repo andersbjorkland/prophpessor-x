@@ -82,9 +82,11 @@ class DBManager
     public function createRelationTables(array $classes): PromiseInterface
     {
         $promises = [];
+        $classQueries = [];
         $count = count($classes);
         echo "Handling $count relational classes\n";
         foreach ($classes as $class) {
+            $classQueries[$class] = [];
             $reflectionClass = new \ReflectionClass($class);
             $properties = $reflectionClass->getProperties();
             foreach ($properties as $property) {
@@ -93,18 +95,22 @@ class DBManager
                 foreach ($attributes as $attributeName => $attribute) {
                     /** @var ManyMany $attributeInstance */
                     $attributeInstance = $attribute->newInstance();
-                    $promises[] = $this->db->query($attributeInstance->getCreateTableSchema())->then(
-                        function (QueryResult $result) use ($class, $count) {
-                            return $result->warningCount > 0 ?
-                                CliColor::colorize("Table already exists for $class \n", CliColor::YELLOW) :
-                                CliColor::colorize("Successfully created table for $class \n", CliColor::GREEN);
-                        },
-                        function (Exception $e) use ($class, $count) {
-                            return CliColor::colorize($e->getMessage(), CliColor::RED) . "\n" . $e->getTraceAsString() . "\n";
-                        }
-                    );
+                    $classQueries[$class][] = $attributeInstance->getCreateTableSchema();
                 }
             }
+        }
+
+        foreach ($classQueries as $class => $queries) {
+            $promises[] = $this->db->query(implode(";\n", $queries))->then(
+                function (QueryResult $result) use ($class, $count) {
+                    return $result->warningCount > 0 ?
+                        CliColor::colorize("Table already exists for $class \n", CliColor::YELLOW) :
+                        CliColor::colorize("Successfully created table for $class \n", CliColor::GREEN);
+                },
+                function (Exception $e) use ($class, $count) {
+                    return CliColor::colorize($e->getMessage(), CliColor::RED) . "\n" . $e->getTraceAsString() . "\n";
+                }
+            );
         }
 
         return all($promises);
@@ -121,7 +127,7 @@ class DBManager
     public function getCreateTableQuery(string $class): string
     {
         $schema = $this->getSchema($class);
-        $tableName = $schema['className'];
+        $tableName = $class;
         $attributes = $schema['attributes'];
 
         $primaryId = array_filter($attributes, function ($attribute) {

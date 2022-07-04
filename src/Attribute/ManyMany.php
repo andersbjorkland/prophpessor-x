@@ -21,18 +21,24 @@ class ManyMany implements CreatesDatabase
     public function getCreateTableSchema(): string
     {
         $sourceKey =  $this->sourceClass .'ID';
-        $targetKey = $this->targetClass .'ID';
-        $tableName =  $this->sourceClass . '-' . $this->targetClass;
-        $constraintName1 = 'fk_' . $tableName . '_' . $sourceKey;
-        $constraintName2 = 'fk_' . $tableName . '_' . $targetKey;
+        $sourceKeyString =  '`' . $sourceKey .'`';
 
-        $query = 'CREATE TABLE `' . $tableName . '`(
-            ' . $sourceKey .' int not null,
-            ' . $targetKey .' int not null,
-            PRIMARY KEY('. $sourceKey .', ' . $targetKey . '),
-            CONSTRAINT ' . $constraintName1 . ' FOREIGN KEY (' . $sourceKey . ') references ' . $this->sourceClass . ' (id),
-            CONSTRAINT ' . $constraintName2 . ' FOREIGN KEY (' . $targetKey . ') references ' . $this->targetClass . ' (id)
-        )';
+        $targetKey = $this->targetClass .'ID';
+        $targetKeyString = '`' . $targetKey .'`';
+
+        $tableName =  $this->sourceClass . '-' . $this->targetClass;
+        $tableNameString =  '`' . $tableName . '`';
+
+        $constraintName1 = '`fk_' . $tableName . '_' . $sourceKey . '`';
+        $constraintName2 = '`fk_' . $tableName . '_' . $targetKey . '`';
+
+        $query = 'CREATE TABLE ' . $tableNameString . '('
+            . $sourceKeyString .' int UNSIGNED not null,'
+            . $targetKeyString .' int UNSIGNED not null,'
+            . ' PRIMARY KEY('. $sourceKeyString .', ' . $targetKeyString . '),'
+            . ' CONSTRAINT ' . $constraintName1 . ' FOREIGN KEY (' . $sourceKeyString . ') references `' . $this->sourceClass . '` (id),'
+            . ' CONSTRAINT ' . $constraintName2 . ' FOREIGN KEY (' . $targetKeyString . ') references `' . $this->targetClass . '` (id)'
+            . ')';
 
         return $query;
     }

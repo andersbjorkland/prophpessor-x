@@ -8,7 +8,7 @@ class PrimaryKey implements EntityAttribute
     public const NAME = 'Primary Key';
     public string $strategy;
 
-    public function __construct(string $strategy = 'AUTO_INCREMENT', bool $nullable = false)
+    public function __construct(string $strategy = 'AUTO_INCREMENT')
     {
         $this->strategy = $strategy;
     }

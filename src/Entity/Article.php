@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Attribute\ManyMany;
 use App\Attribute\Text;
 use App\Attribute\Varchar;
+use phpDocumentor\Reflection\DocBlock\Tags\Source;
 
 class Article extends AbstractEntity
 {
@@ -12,4 +14,7 @@ class Article extends AbstractEntity
 
     #[Text]
     private string $content;
+
+    #[ManyMany(sourceClass: self::class, targetClass: Category::class)]
+    private array $categories;
 }

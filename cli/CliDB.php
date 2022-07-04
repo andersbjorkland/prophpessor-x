@@ -14,13 +14,18 @@ class CliDB implements CliCommand
         $manager = new DBManager();
 
         try {
-            $manager->createTables($entities)->then(function (array $result) {
-                echo "Tables processed:\n";
-                foreach ($result as $message) {
-                    echo $message . "\n";
-                }
-                exit(0);
-            });
+            $manager->createTables($entities)
+                ->then(function (array $result) {
+                    echo "Tables processed:\n";
+                    foreach ($result as $message) {
+                        echo $message . "\n";
+                    }
+                });
+
+            $manager->createRelationTables($entities)
+                ->then(function () {
+                    echo "Relational table created.\n";
+                });
         } catch (Exception $e) {
             echo CliColor::colorize($e->getMessage(), CliColor::RED);
             exit(1);

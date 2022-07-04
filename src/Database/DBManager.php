@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Database;
 
 use App\Attribute\EntityAttribute;
+use App\Attribute\ManyMany;
 use App\Attribute\NullableAttribute;
 use App\Attribute\PrimaryKey;
 use Cli\CliColor;
@@ -77,6 +78,38 @@ class DBManager
 
         return all($promises);
     }
+
+    public function createRelationTables(array $classes): PromiseInterface
+    {
+        $promises = [];
+        $count = count($classes);
+        echo "Handling $count relational classes\n";
+        foreach ($classes as $class) {
+            $reflectionClass = new \ReflectionClass($class);
+            $properties = $reflectionClass->getProperties();
+            foreach ($properties as $property) {
+                $attributes = $property->getAttributes(ManyMany::class, \ReflectionAttribute::IS_INSTANCEOF);
+
+                foreach ($attributes as $attributeName => $attribute) {
+                    /** @var ManyMany $attributeInstance */
+                    $attributeInstance = $attribute->newInstance();
+                    $promises[] = $this->db->query($attributeInstance->getCreateTableSchema())->then(
+                        function (QueryResult $result) use ($class, $count) {
+                            return $result->warningCount > 0 ?
+                                CliColor::colorize("Table already exists for $class \n", CliColor::YELLOW) :
+                                CliColor::colorize("Successfully created table for $class \n", CliColor::GREEN);
+                        },
+                        function (Exception $e) use ($class, $count) {
+                            return CliColor::colorize($e->getMessage(), CliColor::RED) . "\n" . $e->getTraceAsString() . "\n";
+                        }
+                    );
+                }
+            }
+        }
+
+        return all($promises);
+    }
+
 
     public function createTable(string $class): PromiseInterface
     {
